@@ -23,7 +23,8 @@
 var semver = require('semver');
 var xml = require('xml2js');
 var BUCKET_URL = 'https://resin-production-downloads.s3.amazonaws.com';
-var NUMBER_OF_PACKAGES = 6;
+var PACKAGE_NAME = 'etcher';
+var NUMBER_OF_PACKAGES = 8;
 
 /**
  * @summary Get Etcher latest version
@@ -85,13 +86,17 @@ module.exports = function(request, callback) {
       var bucketEntries = result.ListBucketResult.Contents;
 
       return callback(null, bucketEntries.reduce(function(accumulator, entry) {
-        var version = entry.Key[0].split('/')[1];
-        accumulator[version] = accumulator[version] || 0;
-        accumulator[version] += 1;
+        var entryParts = entry.Key[0].split('/');
+        var name = entryParts[0];
+        var version = entryParts[1];
+        if (name === PACKAGE_NAME) {
+          accumulator[version] = accumulator[version] || 0;
+          accumulator[version] += 1;
 
-        if (accumulator[version] >= NUMBER_OF_PACKAGES &&
-            semver.gt(version, accumulator.latest)) {
-          accumulator.latest = version;
+          if (accumulator[version] >= NUMBER_OF_PACKAGES &&
+              semver.gt(version, accumulator.latest)) {
+            accumulator.latest = version;
+          }
         }
 
         return accumulator;
